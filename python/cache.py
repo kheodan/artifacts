@@ -1,3 +1,5 @@
+import datetime
+
 from collections import OrderedDict
 
 
@@ -15,11 +17,24 @@ class Cache:
 
     def touch(self, key, value):
         try:
-            self.cache.pop(key)
-            self.cache[key] = value
-            return value
+            res = self.cache.pop(key)['value']
+            self.cache[key] = {'time': datetime.datetime.now(), 'value': value}
+            return res
         except KeyError:
-            self.cache[key] = value
+            self.cache[key] = {'time': datetime.datetime.now(), 'value': value}
             if len(self.cache.keys()) > self.cacheSize:
-                self.cache.pop(self.cache.keys()[0])
-            return value
+                self.cache.popitem(last=False)
+                res = self.cache.pop(key)['value']
+                self.cache[key] = {'time': datetime.datetime.now(), 'value': value}
+                return res
+
+# a = Cache(100)
+# a['foo'] = 'bar'
+# a.cache.get('foo').get('value')
+# > 'bar'
+#
+# a.cache.get('foo').get('time')
+# > datetime.datetime(2020, 7, 23, 20, 20, 5, 356122)
+#
+# a['foo']
+# > 'bar'
